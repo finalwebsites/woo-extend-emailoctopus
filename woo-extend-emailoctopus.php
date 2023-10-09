@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: Extend MailerLite for WooCommerce
+Plugin Name: Extend EmailOctopus for WooCommerce
 Author: Olaf Lederer
-Description: Extend the MailerLite connector for WooCommerce
+Description: Extend the EmailOctopus connector for WooCommerce
 Version: 1.0
 
 
@@ -14,9 +14,9 @@ define('WCEXTML_DIR', plugin_dir_path( __FILE__ ));
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
-if ( ! class_exists( 'FWS_Woo_Mailerlite' ) ) :
+if ( ! class_exists( 'FWS_Woo_EmailOctopus' ) ) :
 
-class FWS_Woo_Mailerlite {
+class FWS_Woo_EmailOctopus {
 
 	public $ml_settings;
 
@@ -34,12 +34,12 @@ class FWS_Woo_Mailerlite {
 	public function init() {
 
 		// Checks if MailerLite - WooCommerce integration is installed.
-		if ( class_exists( 'Woo_Mailerlite' ) ) {
+		if ( class_exists( 'EmailOctopus\Plugin' ) ) {
 			// Include the integration class.
-			include_once WCEXTML_DIR . 'includes/class-woo-mailerlite-integration.php';
+			include_once WCEXTML_DIR . 'includes/class-woo-emailoctopus-integration.php';
 
 
-			$this->ml_settings = get_option('woocommerce_fws-woo-mailerlite_settings');
+			$this->ml_settings = get_option('woocommerce_fws-woo-emailoctopus_settings');
 
 			// Register the integration.
 			add_filter( 'woocommerce_integrations', array( $this, 'fws_add_integration' ) );
@@ -49,7 +49,7 @@ class FWS_Woo_Mailerlite {
 		} else {
             add_action( 'admin_notices', function() {
                 $class = 'notice notice-error';
-                $message = __( 'The required plugin "MailerLite - WooCommerce integration" is not installed.', 'fws-woo-mailerlite' );
+                $message = __( 'The required plugin "EmailOctopus" is not installed.', 'fws-woo-emailoctopus' );
                 printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 
             });
@@ -60,15 +60,15 @@ class FWS_Woo_Mailerlite {
 	 * Add a new integration to WooCommerce.
 	 */
 	public function fws_add_integration( $integrations ) {
-		$integrations[] = 'FWS_Woo_Mailerlite_Integration';
+		$integrations[] = 'FWS_Woo_EmailOctopus_Integration';
 		return $integrations;
 	}
 
 	public function fws_subscribe_checkbox_field() {
-		$settings = get_option('woocommerce_fws-woo-mailerlite_settings');
-		$label = (!empty($settings['mailerlite_subscribe_text'])) ? $settings['mailerlite_subscribe_text'] : __( 'Subscribe newsletter', 'fws-woo-mailerlite' );
+		$settings = get_option('woocommerce_fws-woo-emailoctopus_settings');
+		$label = (!empty($settings['emailoctopus_subscribe_text'])) ? $settings['emailoctopus_subscribe_text'] : __( 'Subscribe newsletter', 'fws-woo-emailoctopus' );
 		echo '<div class="fws_custom_class">';
-		woocommerce_form_field( 'fws_mailerlite_checkbox', array(
+		woocommerce_form_field( 'fws_emailoctopus_checkbox', array(
 			'type'          => 'checkbox',
 			'label'         => $label,
 			'required'  => false
@@ -80,6 +80,6 @@ class FWS_Woo_Mailerlite {
 
 }
 
-$FWS_Woo_Mailerlite = new FWS_Woo_Mailerlite();
+$FWS_Woo_EmailOctopus = new FWS_Woo_EmailOctopus();
 
 endif;

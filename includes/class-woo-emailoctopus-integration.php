@@ -1,15 +1,15 @@
 <?php
 /**
- * Extend MailerLite for WooCommerce
+ * Extend EmailOctopus for WooCommerce
  *
- * @package  FWS_Woo_Mailerlite_Integration
+ * @package  FWS_Woo_EmailOctopus_Integration
  * @category Integration
  * @author   Olaf Lederer
  */
 
 
 
-class FWS_Woo_Mailerlite_Integration extends WC_Integration {
+class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 
 
 	/**
@@ -17,9 +17,9 @@ class FWS_Woo_Mailerlite_Integration extends WC_Integration {
 	 */
 	public function __construct() {
 
-		$this->id = 'fws-woo-mailerlite';
-		$this->method_title = __( 'MailerLite Woo Extension', 'fws-woo-mailerlite' );
-		$this->method_description = __( 'Add newsletter subscribers to a specific MailerLite group', 'fws-woo-mailerlite' );
+		$this->id = 'fws-woo-emailoctopus';
+		$this->method_title = __( 'MailerLite Woo Extension', 'fws-woo-emailoctopus' );
+		$this->method_description = __( 'Add newsletter subscribers to a specific MailerLite group', 'fws-woo-emailoctopus' );
 
 		// Load the settings.
 		$this->init_form_fields();
@@ -32,45 +32,45 @@ class FWS_Woo_Mailerlite_Integration extends WC_Integration {
 
 		// Actions.
 		add_action( 'woocommerce_update_options_integration_'.$this->id, array( $this, 'process_admin_options' ) ); // callback from parent class
-  		add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_to_mailerlite_callback' ) );
+  		add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_to_emailoctopus_callback' ) );
 
 	}
 
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'group' => array(
-                'title' 		=> __( 'Group', 'fws-woo-mailerlite' ),
+                'title' 		=> __( 'Group', 'fws-woo-emailoctopus' ),
                 'type' 			=> 'select',
                 'class'         => 'wc-enhanced-select',
-                'description' => __( 'The default group which will be taken for new subscribers', 'fws-woo-mailerlite' ),
+                'description' => __( 'The default group which will be taken for new subscribers', 'fws-woo-emailoctopus' ),
                 'default' 		=> '',
                 'options'		=> $this->get_group_options(),
                 'desc_tip' => true
             ),
             'checkout_position' => array(
-				'title' 		=> __( 'Position', 'fws-woo-mailerlite' ),
+				'title' 		=> __( 'Position', 'fws-woo-emailoctopus' ),
 				'type' 			=> 'select',
 				'class'         => 'wc-enhanced-select',
 				'default' 		=> 'checkout_billing',
 				'options'		=> array(
-					'checkout_billing' => __( 'After billing details', 'fws-woo-mailerlite' ),
-					'checkout_shipping' => __( 'After shipping details', 'fws-woo-mailerlite' ),
-					'checkout_after_customer_details' => __( 'After customer details', 'fws-woo-mailerlite' ),
-					'checkout_after_terms_and_conditions' => __( 'After terms and conditions', 'fws-woo-mailerlite' )
+					'checkout_billing' => __( 'After billing details', 'fws-woo-emailoctopus' ),
+					'checkout_shipping' => __( 'After shipping details', 'fws-woo-emailoctopus' ),
+					'checkout_after_customer_details' => __( 'After customer details', 'fws-woo-emailoctopus' ),
+					'checkout_after_terms_and_conditions' => __( 'After terms and conditions', 'fws-woo-emailoctopus' )
 				),
 			),
 			'mailerlite_subscribe_text' => array(
-				'title'             => __( 'Text for the newsletter subscription', 'fws-woo-mailerlite' ),
+				'title'             => __( 'Text for the newsletter subscription', 'fws-woo-emailoctopus' ),
 				'type'              => 'text',
 				'default'           => '',
 				'desc_tip'          => true,
-				'description'       => __( 'The text for the subscription on the checkout page.', 'fws-woo-mailerlite' ),
+				'description'       => __( 'The text for the subscription on the checkout page.', 'fws-woo-emailoctopus' ),
 			)
 		);
 	}
 
 	public function get_group_options() {
-		$options = array( '' => __('Choose one...', 'fws-woo-mailerlite' ) );
+		$options = array( '' => __('Choose one...', 'fws-woo-emailoctopus' ) );
 		$groups = mailerlite_wp_get_groups();
 		foreach ($groups as $group) {
 			$options[$group['id']] = $group['name'];
@@ -78,7 +78,7 @@ class FWS_Woo_Mailerlite_Integration extends WC_Integration {
 		return $options;
 	}
 
-	public function add_to_mailerlite_callback( $order_id) {
+	public function add_to_emailoctopus_callback( $order_id) {
 		$order = wc_get_order( $order_id );
 		$billing_email  = $order->get_billing_email();
 		$resp = $this->get_subscriber_by_email($billing_email);
