@@ -48,6 +48,8 @@ if ( ! class_exists( 'FWS_Woo_EmailOctopus' ) ) {
 					add_action('woocommerce_'.$this->eo_settings['checkout_position'], array( $this, 'subscribe_checkbox_field'));
 				}
 
+				add_action('woocommerce_checkout_update_order_meta', array( $this, 'checkout_order_meta'));
+
 				$api_key = get_option('emailoctopus_api_key', false);
 
 				$is_valid_key = \EmailOctopus\Utils::is_valid_api_key($api_key, true);
@@ -92,6 +94,10 @@ if ( ! class_exists( 'FWS_Woo_EmailOctopus' ) ) {
 			echo '</div>';
 		}
 
+		public function checkout_order_meta( $order_id ) {
+			if (!empty($_POST['fws_emailoctopus_checkbox'])) 
+				update_post_meta( $order_id, 'emailoctopus_subscribed', esc_attr($_POST['fws_emailoctopus_checkbox']));
+		}
 	}
 }
 

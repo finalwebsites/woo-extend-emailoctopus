@@ -7,8 +7,6 @@
  * @author   Olaf Lederer
  */
 
-
-
 class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 
 	private $api_key;
@@ -16,22 +14,16 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 	 * Init and hook in the integration.
 	 */
 	public function __construct() {
-
 		$this->id = 'fws-woo-emailoctopus';
 		$this->method_title = __( 'EmailOctopus', 'fws-woo-emailoctopus' );
 		$this->method_description = __( 'Add newsletter subscribers to a specific EmailOctopus list', 'fws-woo-emailoctopus' );
-
 		// Load the settings.
 		$this->api_key = get_option('emailoctopus_api_key', false);
 		$this->init_form_fields();
-		$this->init_settings();
-
-		
-		
+		$this->init_settings();	
 		// Actions.
 		add_action( 'woocommerce_update_options_integration_'.$this->id, array( $this, 'custom_process_admin_options' ) ); // callback from parent class
   		add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_subscriber_callback' ) );
-
 	}
 
 	public function init_form_fields() {
@@ -87,12 +79,11 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 
 	public function custom_process_admin_options() {    
         parent::process_admin_options();
-
      	$settings = get_option('woocommerce_fws-woo-emailoctopus_settings');
      	if (isset($settings['list']) && !empty($settings['em_store_last_purchase'])) {
 			if ($api_response = $this->get_list($settings['list'])) {
 				$last_purchase = false;
-				foreach ($api_response['field'] as $field) {
+				foreach ($api_response['fields'] as $field) {
 					if ($field['tag'] == 'LastPurchase') {
 						$last_purchase = true;
 						break;
@@ -129,6 +120,7 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 		    'method'      => 'POST',
 		    'data_format' => 'body',
 		));
+		
 	}
 
 	public function get_list_options() {
@@ -136,7 +128,6 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 		$url = 'https://emailoctopus.com/api/1.6/lists?api_key='.$this->api_key;
 		$response = wp_remote_get( esc_url_raw( $url ) );
 		$lists = json_decode( wp_remote_retrieve_body( $response ), true );	
-		//print_r($lists);
 		foreach ($lists['data'] as $list) {
 			$options[$list['id']] = $list['name'];
 		}
@@ -171,7 +162,10 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 	}
 
 	public function add_subscriber_callback( $order_id) {
+		$subscribed = get_post_meta($order_id, 'moosend_subscribed', true);
+		if (empty($subscribed)) return;
 		$order = wc_get_order( $order_id );
+		//error_log(print_r($order, true));
 		$settings = get_option('woocommerce_fws-woo-emailoctopus_settings');
 		$billing_email  = $order->get_billing_email();
 		$first_name = $order->get_billing_first_name();
@@ -191,7 +185,8 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 		}
 		if ($settings['em_store_used_coupon']) {
 			$coupons = $order->get_coupon_codes();
-			if (is_array($coupons)) {
+			//
+			if (count($coupons) > 0) {
 				if ($test != 'new') {
 					$tags['coupon'] = true;
 				} else {
@@ -203,18 +198,14 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 		if ($settings['em_store_last_purchase']) {
 			$fields['LastPurchase'] = date('Y-m-d');
 		}
-
 		$data_array = array(
 			'api_key' => $this->api_key,
 			'email_address' => $billing_email,
-			'fields' => $fiels,
+			'fields' => $fields,
 			'tags' => $tags,
 			'status' => 'SUBSCRIBED'
 		);
-		//print_r($data_array);
 		$this->add_subscriber_to_list($data_array, $settings['list'], $test);
-		//print_r($response);exit;
-
 		if ($this->response_code == 200) {
 			if ($test) { 
 				$order->add_order_note( $billing_email.' added to the mailing list');
@@ -234,15 +225,14 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 			$api_response = json_decode( wp_remote_retrieve_body( $response ), true );	
 			return $api_response['id'];
 		} else {
-			return false;
+			return 'new';
 		}
 	}
 
 	public function add_subscriber_to_list($data_array, $list, $test) {
 		$url = 'https://emailoctopus.com/api/1.6/lists/'.$list.'/contacts';
 		$method = 'POST';
-		
-		if ($test) {
+		if ($test != 'new') {
 			$url .= '/'.$test;
 			$method = 'PUT';
 		} 
@@ -257,15 +247,11 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
 
     public function get_response($response) {
         if ( ! is_wp_error($response) ) {
-
             $this->response = wp_remote_retrieve_body($response);
             $this->response_code = wp_remote_retrieve_response_code($response);
-
             if ( ! is_wp_error($this->response)) {
                 $response = json_decode($this->response);
-
                 if (json_last_error() == JSON_ERROR_NONE) {
-
                     if ( ! isset($response->error)) {
                         return $response;
                     }
@@ -275,7 +261,5 @@ class FWS_Woo_EmailOctopus_Integration extends WC_Integration {
             $this->response = $response->get_error_message();
             $this->response_code = 0;
         }
-        
     }
-
 }
