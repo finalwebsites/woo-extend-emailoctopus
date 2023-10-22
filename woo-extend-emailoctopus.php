@@ -2,7 +2,7 @@
 /*
 Plugin Name: Extend EmailOctopus for WooCommerce
 Author: Olaf Lederer
-Description: Extend the EmailOctopus connector for WooCommerce
+Description: Integrate EmailOctopus for the WooCommerce checkout page
 Version: 1.0
 
 
