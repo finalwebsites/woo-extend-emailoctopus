@@ -34,7 +34,7 @@ if ( ! class_exists( 'FWS_Woo_EmailOctopus' ) ) {
 		public function init() {
 
 			// Checks if EmailOctopus plugin is installed.
-			if ( class_exists( 'EmailOctopus\Plugin' ) ) {
+			if ( class_exists( 'EmailOctopus\Plugin' ) && class_exists( 'WooCommerce') ) {
 				// Include the integration class.
 				include_once WCEXTEO_DIR . 'includes/class-woo-emailoctopus-integration.php';
 
@@ -64,7 +64,7 @@ if ( ! class_exists( 'FWS_Woo_EmailOctopus' ) ) {
 			} else {
 	            add_action( 'admin_notices', function() {
 	                $class = 'notice notice-error';
-	                $message = __( 'The required plugin "EmailOctopus" is not installed.', 'fws-woo-emailoctopus' );
+	                $message = __( 'The required plugins "EmailOctopus" and "WooCommerce" need to be installed.', 'fws-woo-emailoctopus' );
 	                printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
 
 	            });
